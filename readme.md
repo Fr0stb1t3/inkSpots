@@ -13,5 +13,4 @@ $('.classname').inkSpots(); //or #id
 	
 License
 ----
-
 MIT
