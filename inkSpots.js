@@ -9,14 +9,17 @@
 **/
 var window = window;
 (function() {
-   
-    function applySpots(target){
+    var testCounter= 0;
+    var globalImageHolder={};//temporary storage
+    /*
+     function applySpots(target){
         var elements=document.querySelectorAll(target);
         for(j = 0 ;j< elements.length; j++){
             el = elements[j];
             domSpot(el);
         }
     }
+   
     function domSpot(el){
             var tW = el.offsetWidth - 100;
             var tH = el.offsetHeight - 100;
@@ -37,37 +40,40 @@ var window = window;
             bRep +=';'
             bSize +=';'
             el.setAttribute('style',bUrl+bPos+bRep+bSize);
-    }
+    }*/
     function randomIntFromInterval(min,max,space)
     {
         var space = space || 0;
         return Math.floor(Math.random()*(max-min+1)+min) - space;
     }
     window.applyInkSpots = function(target) {
-        applySpots(target);
-        applyCanvasBackground("#targetCanvas");
+        applyCanvasBackground(target);
     }
     function applyCanvasBackground(target){
-       
         var c = document.getElementById("testCanvs");
         c.setAttribute("width", "1300px");
         c.setAttribute("height", "1300px");
         var ctx = c.getContext("2d");
         
-        //drawImageSet(  ctx,'images/spot1.svg', 20);
-        //drawImageSet(  ctx,'images/spot2.svg', 20);
-       // drawImageSet(  ctx,'images/spot3.svg', 20);
-        //drawImageSet(  ctx,'images/spot4.svg', 20);
-        drawImageSet(  ctx,[
-            'images/spot1.svg',
-            'images/spot2.svg',
-            'images/spot3.svg',
-            'images/spot4.svg'
-        ], 1,
+        ctx.clearRect(0, 0, c.width, c.height);
+        
+        drawImageSet( ctx,[
+            'http://localhost/inkSpots/images/spot1.svg',
+            'http://localhost/inkSpots/images/spot2.svg',
+            'http://localhost/inkSpots/images/spot4.svg',
+            'http://localhost/inkSpots/images/spot3.svg'
+        ], 20,
         function(){
             var elements=document.querySelectorAll(target);
             for(j = 0 ;j< elements.length; j++){
-                var dataURL = c.toDataURL("image/png");
+                var dataURL;
+                  c.crossOrigin = "Anonymous";
+                try {
+                     dataURL = c.toDataURL("image/png");
+                }catch(err){
+                    //console.log(err);
+                    dataURL="";
+                }
                 var el = elements[j];
                 var bPos = "background-position: 0px 0px;";
                 var bRep = "background-repeat: no-repeat;";
@@ -77,27 +83,24 @@ var window = window;
                 c.setAttribute('style','display:none');
             }
         });
-       
-       
     }
     function drawImageSet(canvas , src, amount, _callback){
         var taskCounter = amount;
         var completeCallbackTimer;
         if(src instanceof Array ){
             taskCounter = amount*src.length;
-            completeCallbackTimer = setInterval(checkComplete, amount  * 50);
+            completeCallbackTimer = setInterval(checkComplete, amount  * 25);
             for(var i = 0;i < src.length;i++){
-                drawImageOne( canvas,src[i],amount,function(){taskCounter--;} );
+                loadImageToCanvas( canvas,src[i],amount,function(){taskCounter-=amount;} );
             }
         }else{
-            completeCallbackTimer = setInterval(checkComplete, amount*100);
-            for(var i = 0;i < amount;i++){
-                drawImageOne( canvas,src,function(){taskCounter--;} );
-            }
+            completeCallbackTimer = setInterval(checkComplete, amount*25);
+            loadImageToCanvas( canvas,src,amount,function(){taskCounter-=amount;} );
         }
         
         function checkComplete(){
             if(taskCounter > 0){//Left for debugging
+            //console.log('NotComplete'+taskCounter);
             }else{
                  if (typeof _callback !== 'undefined') {
                      clearTimeout(completeCallbackTimer);
@@ -105,31 +108,140 @@ var window = window;
                 }
             }
         }
-       
     }
-    function drawImageOne( canvas,src,amount, _callback ){
-        var img = new Image;
-        img.onload = function() {
-            for(var i = 0;i < src.length;i++){
+    function loadImageToCanvas( canvas,src,amount, _callback ){
+        
+        if (typeof globalImageHolder[src] === 'undefined') {
+            var img = new Image;
+            globalImageHolder[src] = img;
+            img.crossOrigin = "Anonymous";
+            img.onload = function() {  
+                testCounter++;
+                multipleRandomImages(canvas,img,amount);
+                
+                if (typeof _callback !== 'undefined') {
+                    _callback();
+                }
+            }
+            if(msieversion()){
+                //console.log('ie');
+                img.src = src;
+            }else{
+                img.src = src;
+            }
+          
+        }else{
+            var img = globalImageHolder[src];
+            testCounter++;
+            img.crossOrigin = 'Anonymous';
+            multipleRandomImages(canvas,img,amount);
+           
+            if (typeof _callback !== 'undefined') {
+                _callback();
+            }
+        }
+    }
+    function msieversion() {
+        var ua = window.navigator.userAgent;
+        var msie = ua.indexOf("MSIE ");
+        if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))
+            return true;
+        else
+            return false;
+    }
+    function safariversion(){
+        var ua = navigator.userAgent.toLowerCase(); 
+         if (ua.indexOf('safari') != -1) { 
+            if (ua.indexOf('chrome') > -1) {
+              return false // Chrome
+            } else {
+              return true // Safari
+            }
+          }
+    }
+
+    function multipleRandomImages(ctx,img,amount){
+         
+        if( msieversion() || safariversion() ){ //msieversion()
+            fetchXML(img.src,function(newSVGDoc){ //Temporary workaround via canvg
+                for(var i = 0;i < amount;i++){
+                    var h = randomIntFromInterval(100,1000);
+                    var w = h;
+                    var x = randomIntFromInterval(-100,1300);
+                    var y = randomIntFromInterval(-100,1300); 
+                    ctx.drawSvg(newSVGDoc, x ,y , w ,h);
+                } 
+            }); 
+        }else{
+            for(var i = 0;i < amount;i++){
                 var h = randomIntFromInterval(100,1000);
                 var w = h;
                 var x = randomIntFromInterval(-100,1300);
                 var y = randomIntFromInterval(-100,1300); 
-                canvas.drawImage(img, x ,y , w ,h);
-            }
-            if (typeof _callback !== 'undefined') {
-                _callback();
-                console.log('Image Loaded');
+                ctx.drawImage(img, x ,y , w ,h);
             }
         }
-        img.src = src;
     }
-    
+    function clone(obj) {
+        if(obj === null || typeof(obj) !== 'object' || 'isActiveClone' in obj)
+            return obj;
+
+        var temp = obj.constructor(); // changed
+
+        for(var key in obj) {
+            if(Object.prototype.hasOwnProperty.call(obj, key)) {
+                obj['isActiveClone'] = null;
+                temp[key] = clone(obj[key]);
+                delete obj['isActiveClone'];
+            }
+        }    
+
+        return temp;
+    }
+    function fetchXML  (url, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onreadystatechange = function (evt) {
+            if (xhr.readyState === 4) {
+                callback(xhr.responseXML);
+            }
+        };
+        xhr.send(null);
+    };
     if ( typeof jQuery !== 'undefined' ){
         jQuery.fn.inkSpots = function() {
             return this.each(function(i) {
-               
-                domSpot(this);
+                    var el =this;
+                    var c = document.getElementById("testCanvs");
+                    c.setAttribute("width", "1300px");
+                    c.setAttribute("height", "1300px");
+                    var ctx = c.getContext("2d");
+                    
+                    ctx.clearRect(0, 0, c.width, c.height);
+                    
+                    drawImageSet( ctx,[
+                        'http://localhost/inkSpots/images/spot1.svg',
+                        'http://localhost/inkSpots/images/spot2.svg',
+                        'http://localhost/inkSpots/images/spot4.svg',
+                        'http://localhost/inkSpots/images/spot3.svg'
+                    ], 20,
+                    function(){
+                        var dataURL;
+                          c.crossOrigin = "Anonymous";
+                        try {
+                             dataURL = c.toDataURL("image/png");
+                        }catch(err){
+                            //console.log(err);
+                            dataURL="";
+                        }
+                        var bPos = "background-position: 0px 0px;";
+                        var bRep = "background-repeat: no-repeat;";
+                        var bSize = "background-size: 100%;";
+                        el.setAttribute('style', 'background-image: url('+dataURL+');'+bPos+bRep+bSize)
+                        //console.log(dataURL);
+                        c.setAttribute('style','display:none');
+                        
+                    });
             })
         }
     };
