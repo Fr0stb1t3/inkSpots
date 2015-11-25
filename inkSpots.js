@@ -8,39 +8,12 @@
     Github site:
 **/
 var window = window;
+var spotDefs = typeof spotDefs === 'undefined' ? 0 : spotDefs;
 (function() {
     var testCounter= 0;
+    console.log(spotDefs);
     var globalImageHolder={};//temporary storage
-    /*
-     function applySpots(target){
-        var elements=document.querySelectorAll(target);
-        for(j = 0 ;j< elements.length; j++){
-            el = elements[j];
-            domSpot(el);
-        }
-    }
    
-    function domSpot(el){
-            var tW = el.offsetWidth - 100;
-            var tH = el.offsetHeight - 100;
-            var bUrl = 'background-image: url("images/spot1.svg")';
-            var bPos = "background-position: 0px 0px";
-            var bRep = "background-repeat: no-repeat";
-            var bSize = "background-size: 100%";
-            
-            for(var i = 1;i < 20;i++){
-                var k = i%3 + 1;
-                bUrl += ' , url("images/spot'+k+'.svg") '
-                bPos += ' , '+randomIntFromInterval(-200,tW)+"px "+randomIntFromInterval(-200,tH)+"px";
-                bRep += ' ,  no-repeat'
-                bSize += ' ,  '+randomIntFromInterval(1,200)+'%'
-            }
-            bUrl +=';'
-            bPos +=';'
-            bRep +=';'
-            bSize +=';'
-            el.setAttribute('style',bUrl+bPos+bRep+bSize);
-    }*/
     function randomIntFromInterval(min,max,space)
     {
         var space = space || 0;
@@ -54,15 +27,8 @@ var window = window;
         c.setAttribute("width", "1300px");
         c.setAttribute("height", "1300px");
         var ctx = c.getContext("2d");
-        
         ctx.clearRect(0, 0, c.width, c.height);
-        
-        drawImageSet( ctx,[
-            'http://localhost/inkSpots/images/spot1.svg',
-            'http://localhost/inkSpots/images/spot2.svg',
-            'http://localhost/inkSpots/images/spot4.svg',
-            'http://localhost/inkSpots/images/spot3.svg'
-        ], 20,
+        drawObjectSet( ctx, spotDefs, 10,
         function(){
             var elements=document.querySelectorAll(target);
             for(j = 0 ;j< elements.length; j++){
@@ -71,7 +37,6 @@ var window = window;
                 try {
                      dataURL = c.toDataURL("image/png");
                 }catch(err){
-                    //console.log(err);
                     dataURL="";
                 }
                 var el = elements[j];
@@ -79,28 +44,25 @@ var window = window;
                 var bRep = "background-repeat: no-repeat;";
                 var bSize = "background-size: 100%;";
                 el.setAttribute('style', 'background-image: url('+dataURL+');'+bPos+bRep+bSize)
-                //console.log(dataURL);
                 c.setAttribute('style','display:none');
             }
         });
     }
-    function drawImageSet(canvas , src, amount, _callback){
+    function drawObjectSet(canvas , objects, amount, _callback){
         var taskCounter = amount;
         var completeCallbackTimer;
-        if(src instanceof Array ){
-            taskCounter = amount*src.length;
+        if(objects instanceof Array ){
+            taskCounter = amount*objects.length;
             completeCallbackTimer = setInterval(checkComplete, amount  * 25);
-            for(var i = 0;i < src.length;i++){
-                loadImageToCanvas( canvas,src[i],amount,function(){taskCounter-=amount;} );
+            for(var i = 0;i < objects.length;i++){
+                objToCanvas( canvas,objects[i],amount,function(){taskCounter-=amount;} );
             }
         }else{
             completeCallbackTimer = setInterval(checkComplete, amount*25);
-            loadImageToCanvas( canvas,src,amount,function(){taskCounter-=amount;} );
+            objToCanvas( canvas,objects,amount,function(){taskCounter-=amount;} );
         }
-        
         function checkComplete(){
             if(taskCounter > 0){//Left for debugging
-            //console.log('NotComplete'+taskCounter);
             }else{
                  if (typeof _callback !== 'undefined') {
                      clearTimeout(completeCallbackTimer);
@@ -109,38 +71,19 @@ var window = window;
             }
         }
     }
-    function loadImageToCanvas( canvas,src,amount, _callback ){
-        
-        if (typeof globalImageHolder[src] === 'undefined') {
-            var img = new Image;
-            globalImageHolder[src] = img;
-            img.crossOrigin = "Anonymous";
-            img.onload = function() {  
-                testCounter++;
-                multipleRandomImages(canvas,img,amount);
-                
-                if (typeof _callback !== 'undefined') {
-                    _callback();
-                }
-            }
-            if(msieversion()){
-                //console.log('ie');
-                img.src = src;
-            }else{
-                img.src = src;
-            }
-          
-        }else{
-            var img = globalImageHolder[src];
-            testCounter++;
-            img.crossOrigin = 'Anonymous';
-            multipleRandomImages(canvas,img,amount);
-           
-            if (typeof _callback !== 'undefined') {
-                _callback();
-            }
+    function objToCanvas( ctx, shapeObj, amount, _callback ){
+        for(var i = 0;i < amount;i++){
+            var h = randomIntFromInterval(.01,2);
+            var w = h;
+            var x = randomIntFromInterval(-200,500);
+            var y = randomIntFromInterval(-200,500); 
+            shapeObj(ctx , x, y, h, w, 'rgba(0,0,0,.5)');
+        }
+        if (typeof _callback !== 'undefined') {
+            _callback();
         }
     }
+
     function msieversion() {
         var ua = window.navigator.userAgent;
         var msie = ua.indexOf("MSIE ");
@@ -153,61 +96,14 @@ var window = window;
         var ua = navigator.userAgent.toLowerCase(); 
          if (ua.indexOf('safari') != -1) { 
             if (ua.indexOf('chrome') > -1) {
-              return false // Chrome
+              return false; // Chrome
             } else {
-              return true // Safari
+              return true; // Safari
             }
           }
     }
 
-    function multipleRandomImages(ctx,img,amount){
-         
-        if( msieversion() || safariversion() ){ //msieversion()
-            fetchXML(img.src,function(newSVGDoc){ //Temporary workaround via canvg
-                for(var i = 0;i < amount;i++){
-                    var h = randomIntFromInterval(100,1000);
-                    var w = h;
-                    var x = randomIntFromInterval(-100,1300);
-                    var y = randomIntFromInterval(-100,1300); 
-                    ctx.drawSvg(newSVGDoc, x ,y , w ,h);
-                } 
-            }); 
-        }else{
-            for(var i = 0;i < amount;i++){
-                var h = randomIntFromInterval(100,1000);
-                var w = h;
-                var x = randomIntFromInterval(-100,1300);
-                var y = randomIntFromInterval(-100,1300); 
-                ctx.drawImage(img, x ,y , w ,h);
-            }
-        }
-    }
-    function clone(obj) {
-        if(obj === null || typeof(obj) !== 'object' || 'isActiveClone' in obj)
-            return obj;
 
-        var temp = obj.constructor(); // changed
-
-        for(var key in obj) {
-            if(Object.prototype.hasOwnProperty.call(obj, key)) {
-                obj['isActiveClone'] = null;
-                temp[key] = clone(obj[key]);
-                delete obj['isActiveClone'];
-            }
-        }    
-
-        return temp;
-    }
-    function fetchXML  (url, callback) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.onreadystatechange = function (evt) {
-            if (xhr.readyState === 4) {
-                callback(xhr.responseXML);
-            }
-        };
-        xhr.send(null);
-    };
     if ( typeof jQuery !== 'undefined' ){
         jQuery.fn.inkSpots = function() {
             return this.each(function(i) {
@@ -218,27 +114,20 @@ var window = window;
                     var ctx = c.getContext("2d");
                     
                     ctx.clearRect(0, 0, c.width, c.height);
-                    
-                    drawImageSet( ctx,[
-                        'http://localhost/inkSpots/images/spot1.svg',
-                        'http://localhost/inkSpots/images/spot2.svg',
-                        'http://localhost/inkSpots/images/spot4.svg',
-                        'http://localhost/inkSpots/images/spot3.svg'
-                    ], 20,
+                    drawObjectSet( ctx, spotDefs, 10,
                     function(){
                         var dataURL;
                           c.crossOrigin = "Anonymous";
                         try {
                              dataURL = c.toDataURL("image/png");
                         }catch(err){
-                            //console.log(err);
                             dataURL="";
                         }
                         var bPos = "background-position: 0px 0px;";
                         var bRep = "background-repeat: no-repeat;";
                         var bSize = "background-size: 100%;";
                         el.setAttribute('style', 'background-image: url('+dataURL+');'+bPos+bRep+bSize)
-                        //console.log(dataURL);
+                        
                         c.setAttribute('style','display:none');
                         
                     });
