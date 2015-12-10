@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=10" />
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>InkSpots 0.0.3</title>
+<title>InkSpots 0.0.4</title>
 <style>
 .iSpot2 ,
 .iSpot {
@@ -32,9 +32,10 @@
 <script src="spotDefs.js" type="text/javascript"></script>
 <script src="inkSpots.js" type="text/javascript"></script>
 <script>
-	$('.iSpot').inkSpots(20);
-	//applyInkSpots('.iSpot');
-	applyInkSpots('.iSpot2',5);
+	$('.iSpot').inkSpots({density:20,color:'rgba(0,0,0,0.5)'});
+	//applyInkSpots('.iSpot',20);
+	//applyInkSpots({target:'.iSpot',density:20,color:'rgba(0,0,0,0.5)'});
+	applyInkSpots({target:'.iSpot2',density:50});
 </script>
 </body>
 </html>
