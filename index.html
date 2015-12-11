@@ -9,7 +9,7 @@
 <style>
 .iSpot2 ,
 .iSpot {
-  width: 30%;
+  width: 100%;
   display: inline-block;
   overflow: hidden;
   height: 800px;
@@ -29,13 +29,13 @@
 </div>
 
 	
-<script src="spotDefs.js" type="text/javascript"></script>
+<script src="spotDefsOpt.js" type="text/javascript"></script>
 <script src="inkSpots.js" type="text/javascript"></script>
 <script>
-	$('.iSpot').inkSpots({density:20,color:'rgba(0,0,0,0.5)'});
+	$('.iSpot').inkSpots({density:80,color:'rgba(0,0,0,0.5)'});
 	//applyInkSpots('.iSpot',20);
 	//applyInkSpots({target:'.iSpot',density:20,color:'rgba(0,0,0,0.5)'});
-	applyInkSpots({target:'.iSpot2',density:50});
+	applyInkSpots({target:'.iSpot2',density:80});
 </script>
 </body>
 </html>

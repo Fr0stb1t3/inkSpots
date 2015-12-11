@@ -12,20 +12,20 @@ var spotDefs = typeof spotDefs === 'undefined' ? 0 : spotDefs;
 (function() {
     "use strict";
     window.applyInkSpots = function(options) {
-        //var start = +new Date();
-        var target =options.target || '.inkSpots';
-        var density =options.density || 10;
-        var color =options.color; 
+        var start = +new Date();
+        var target = options.target || '.inkSpots';
+        var density = options.density || 10;
+        var color = options.color; 
         
         var elements=document.querySelectorAll(target);
         for(var j = 0 ;j< elements.length; j++){
             var el = elements[j];
             _generateBackground(el,density,color);
         }   
-        //var end =  +new Date();  // log end timestamp
-        //var diff = end - start;
-        //console.log('Set for'+target);
-        //console.log(diff);
+        var end =  +new Date();  // log end timestamp
+        var diff = end - start;
+        console.log('Set for'+target);
+        console.log(diff);
     }
    
     function _generateBackground(el, density,color){
@@ -69,17 +69,17 @@ var spotDefs = typeof spotDefs === 'undefined' ? 0 : spotDefs;
             var w = h;
             var x = randomIntFromInterval(-(sizeWidth*1.2),sizeWidth*1.2);
             var y = randomIntFromInterval(-(sizeHeight*1.2),sizeHeight*1.2); 
-            var col = color || colorRandomizer();
+            var col = color || colorRandomizer(1);
             shapeObj(ctx , x, y, h, w, col);
         }
        
     }
-    function colorRandomizer(){
+    function colorRandomizer(maxOpacity){
          var randRed = Math.floor((Math.random() * 250) + 1);
          var randBlue = Math.floor((Math.random() * 250) + 1);
          var randGreen = Math.floor((Math.random() * 250) + 1);
-         var randOpacity = Math.random(); 
-         return  'rgba('+randRed+','+randGreen+','+randGreen+','+randOpacity+')';
+         var randOpacity = maxOpacity || (Math.random()* 0.7 + 0.3 ); 
+         return 'rgba('+randRed+','+randGreen+','+randGreen+','+Math.abs(randOpacity)+')';
     }
     if ( typeof jQuery !== 'undefined' ){
         jQuery.fn.inkSpots = function(options) {
@@ -92,8 +92,8 @@ var spotDefs = typeof spotDefs === 'undefined' ? 0 : spotDefs;
                 _generateBackground(el,density,color);
                 var end =  +new Date();  // log end timestamp
                 var diff = end - start;
-                console.log('Set for'+target);
-                console.log(diff);
+               // console.log('Set for'+target);
+               // console.log(diff);
             });
             
         }
